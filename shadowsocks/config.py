@@ -1,10 +1,10 @@
 import logging
 
 #Config
-MYSQL_HOST = 'mengsky.net'
+MYSQL_HOST = '45.78.57.84'
 MYSQL_PORT = 3306
-MYSQL_USER = 'root'
-MYSQL_PASS = 'root'
+MYSQL_USER = 'ss'
+MYSQL_PASS = 'ss'
 MYSQL_DB = 'shadowsocks'
 
 MANAGE_PASS = 'passwd'
@@ -20,7 +20,7 @@ SS_BIND_IP = '0.0.0.0'
 SS_METHOD = 'rc4-md5'
 
 #LOG CONFIG
-LOG_ENABLE = False
+LOG_ENABLE = True
 LOG_LEVEL = logging.DEBUG
-LOG_FILE = '/var/log/shadowsocks.log'
+LOG_FILE = '/home/ss/shadowsocks.log'
 
