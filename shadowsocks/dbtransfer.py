@@ -16,7 +16,43 @@ class DbTransfer(object):
 
     def __init__(self):
         self.last_get_transfer = {}
-
+        self.traffic_logs = collections.defaultdict(int)
+        #if there was many user, this dic is too large in memeory
+        self.port2userid = collections.defaultdict(int)
+        # pull port2userid from db, and take it to memeory
+        conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER,
+                               passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+        cur = conn.cursor()
+        cur.execute("SELECT id,port FROM user")
+        rows = []
+        for r in cur.fetchall():
+            rows.append(list(r))
+        cur.close()
+        conn.close()
+        for row in rows:
+            self.port2userid[row[1]] = row[0]
+        # get local ip
+        localhost = socket.getfqdn(socket.gethostname())
+        self.ip = socket.gethostbyname(localhost)
+        # ip2nodeid
+        self.ip2nodeid = collections.defaultdict(int)
+        #pull nodeid2ip from db, and take it to memeory
+        conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER,
+                               passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+        cur = conn.cursor()
+        cur.execute("SELECT id,server FROM user")
+        rows = []
+        for r in cur.fetchall():
+            rows.append(list(r))
+        cur.close()
+        conn.close()
+        self.node_id = -1
+        for row in rows:
+            if row[1] == self.ip:
+                self.node_id = row[0]
+        if self.node_id < 0:
+            logging.error('this machine is not added into ss-panel.')
+            sys.exit(0)
     @staticmethod
     def get_instance():
         if DbTransfer.instance is None:
@@ -72,6 +108,37 @@ class DbTransfer(object):
             active_time.update(data)
         cli.close()
         return active_time
+
+    @staticmethod
+    def push_trafficlog_onlinelog():
+        active_time = self.get_ports_active_time()
+        now = int(time.time())
+        online_user = 0
+        for k, v in active_time:
+            if now - v > 1800:
+                user_id = self.port2userid[k]
+                # u and d is equal; what the fuck traffic is?
+                sql = 'INSERT INTO user_traffic_log (user_id,u,d,node_id,rate,traffic,log_time) VALUES(%d,%d,%d,%f,%s,%d)' % (user_id,self.traffic_logs[k],self.traffic_logs[k],self.node_id,1.0,'',now)
+                conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+                cur = conn.cursor()
+                cur.execute(query_sql)
+                cur.close()
+                conn.commit()
+                conn.close()
+                self.traffic_logs[k] = 0
+            else:
+                online_user += 1
+
+        # push to onlinelog
+        sql = 'INSERT INTO ss_node_online_log (node_id, online_user,log_time) VALUES(%d,%d,%d)' % (self.node_id, online_user,now)
+        conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+        cur = conn.cursor()
+        cur.execute(query_sql)
+        cur.close()
+        conn.commit()
+        conn.close()
+
+                
     # why this function is not static
     def push_db_all_user(self):
         dt_transfer = self.get_servers_transfer()
@@ -101,6 +168,9 @@ class DbTransfer(object):
         cur.close()
         conn.commit()
         conn.close()
+        # update traffic_logs @chenjianlong
+        for k, v in dt_transfer.items():
+            self.traffic_logs[k] += v            
 
     @staticmethod
     def pull_db_all_user():
