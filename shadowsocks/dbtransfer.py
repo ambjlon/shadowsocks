@@ -40,7 +40,7 @@ class DbTransfer(object):
         conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER,
                                passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
         cur = conn.cursor()
-        cur.execute("SELECT id,server FROM user")
+        cur.execute("SELECT id,server FROM ss_node")
         rows = []
         for r in cur.fetchall():
             rows.append(list(r))
@@ -222,8 +222,8 @@ class DbTransfer(object):
             try:
                 DbTransfer.get_instance().push_db_all_user()
                 rows = DbTransfer.get_instance().pull_db_all_user()
+                DbTransfer.push_trafficlog_onlinelog()
                 DbTransfer.del_server_out_of_bound_safe(rows)
-                DbTransfer.get_ports_active_time()
             except Exception as e:
                 import traceback
                 traceback.print_exc()
