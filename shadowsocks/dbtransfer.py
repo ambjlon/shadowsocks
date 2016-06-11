@@ -68,7 +68,7 @@ class DbTransfer(object):
             if data == 'e':
                 break
             data = json.loads(data)
-            print 'latest' + data
+            print data
             active_time.update(data)
         cli.close()
         return active_time
