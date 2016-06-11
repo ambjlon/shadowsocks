@@ -119,7 +119,7 @@ class DbTransfer(object):
             if now - active_time[k] > 1800:
                 user_id = self.port2userid[k]
                 # u and d is equal; what the fuck traffic is?
-                sql = 'INSERT INTO user_traffic_log (user_id,u,d,node_id,rate,traffic,log_time) VALUES(%d,%d,%d,%f,%s,%d)' % (user_id,self.traffic_logs[k],self.traffic_logs[k],self.node_id,1.0,'',now)
+                query_sql = 'INSERT INTO user_traffic_log (user_id,u,d,node_id,rate,traffic,log_time) VALUES(%d,%d,%d,%f,%s,%d)' % (user_id,self.traffic_logs[k],self.traffic_logs[k],self.node_id,1.0,'',now)
                 conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
                 cur = conn.cursor()
                 cur.execute(query_sql)
@@ -132,7 +132,7 @@ class DbTransfer(object):
                 online_user += 1
 
         # push to onlinelog
-        sql = 'INSERT INTO ss_node_online_log (node_id, online_user,log_time) VALUES(%d,%d,%d)' % (self.node_id, online_user,now)
+        query_sql = 'INSERT INTO ss_node_online_log (node_id, online_user,log_time) VALUES(%d,%d,%d)' % (self.node_id, online_user,now)
         conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
         cur = conn.cursor()
         cur.execute(query_sql)
