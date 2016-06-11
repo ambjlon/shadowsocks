@@ -43,7 +43,8 @@ class Manager(object):
         self._dns_resolver.add_to_loop(self._loop)
 
         self._statistics = collections.defaultdict(int)
-        self._latest_active_time = collections.defaultdict(float)
+        # use int represent time, the deadline year is 2038 for maxint 2147483647
+        self._latest_active_time = collections.defaultdict(int)
         self._control_client_addr = None
         try:
             manager_address = config['manager_address']
@@ -164,7 +165,7 @@ class Manager(object):
 
     def stat_callback(self, port, data_len):
         self._statistics[port] += data_len
-        self._latest_active_time = time.time()
+        self._latest_active_time = int(time.time())
 
     def handle_periodic(self):
         r = {}
