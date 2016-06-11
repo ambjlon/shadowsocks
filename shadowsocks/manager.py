@@ -24,6 +24,7 @@ import socket
 import logging
 import json
 import collections
+import time
 
 from shadowsocks import common, eventloop, tcprelay, udprelay, asyncdns, shell
 
