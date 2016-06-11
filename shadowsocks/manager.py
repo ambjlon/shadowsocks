@@ -42,6 +42,7 @@ class Manager(object):
         self._dns_resolver.add_to_loop(self._loop)
 
         self._statistics = collections.defaultdict(int)
+        self._latest_active_time = collections.defaultdict(float)
         self._control_client_addr = None
         try:
             manager_address = config['manager_address']
@@ -122,6 +123,8 @@ class Manager(object):
                 a_config = self._config.copy()
                 if command == 'transfer':
                     self.handle_periodic()
+                elif command == 'latest':
+                    self.ports_active_time()
                 else:
                     if config:
                         # let the command override the configuration file
@@ -160,6 +163,7 @@ class Manager(object):
 
     def stat_callback(self, port, data_len):
         self._statistics[port] += data_len
+        self._latest_active_time = time.time()
 
     def handle_periodic(self):
         r = {}
@@ -182,8 +186,37 @@ class Manager(object):
                 i = 0
         if len(r) > 0:
             send_data(r)
+            r.clear()
+            i = 0
+        # e reprsent 'end' @chenjianglong
         self._send_control_data('e')
         self._statistics.clear()
+
+    # send ports' latest_active_time
+    # command is 'latest'
+    def ports_active_time(self):
+        r = {}
+        i = 0
+
+        def send_data(data_dict):
+            if data_dict:
+                # use compact JSON format (without space)
+                data = common.to_bytes(json.dumps(data_dict,
+                                                  separators=(',', ':')))
+                self._send_control_data(data)
+
+        for k, v in self._latest_active_time.items():
+            r[k] = v
+            i += 1
+            if i >= STAT_SEND_LIMIT:
+                send_data(r)
+                r.clear()
+                i = 0
+        if len(r) > 0:
+            send_data(r)
+            r.clear()
+            i = 0
+        self._send_control_data('e')    
 
     def _send_control_data(self, data):
         if self._control_client_addr:

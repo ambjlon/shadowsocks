@@ -45,6 +45,7 @@ class DbTransfer(object):
         cli.settimeout(2)
         cli.sendto('transfer: {}', ('%s' % (config.MANAGE_BIND_IP), config.MANAGE_PORT))
         bflag = False
+        # in manage.py ports's transfer is sended in batched because 'STAT_SEND_LIMIT', and e reprsent end @chenjianglong
         while True:
             data, addr = cli.recvfrom(1500)
             if data == 'e':
@@ -55,7 +56,23 @@ class DbTransfer(object):
         cli.close()
         return dt_transfer
 
-
+    @staticmethod
+    def get_ports_active_time():
+        active_time = {}
+        cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        cli.settimeout(2)
+        cli.sendto('latest: {}', ('%s' % (config.MANAGE_BIND_IP), config.MANAGE_PORT))
+        bflag = False
+        while True:
+            data, addr = cli.recvfrom(1500)
+            if data == 'e':
+                break
+            data = json.loads(data)
+            print 'latest' + data
+            active_time.update(data)
+        cli.close()
+        return active_time
+    # why this function is not static
     def push_db_all_user(self):
         dt_transfer = self.get_servers_transfer()
         query_head = 'UPDATE user'
@@ -133,6 +150,7 @@ class DbTransfer(object):
                 DbTransfer.get_instance().push_db_all_user()
                 rows = DbTransfer.get_instance().pull_db_all_user()
                 DbTransfer.del_server_out_of_bound_safe(rows)
+                DbTransfer.get_ports_active_time()
             except Exception as e:
                 import traceback
                 traceback.print_exc()
