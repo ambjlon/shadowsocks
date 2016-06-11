@@ -165,7 +165,7 @@ class Manager(object):
 
     def stat_callback(self, port, data_len):
         self._statistics[port] += data_len
-        self._latest_active_time = int(time.time())
+        self._latest_active_time[port] = int(time.time())
 
     def handle_periodic(self):
         r = {}
