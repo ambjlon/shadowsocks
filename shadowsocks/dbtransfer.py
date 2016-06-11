@@ -109,8 +109,7 @@ class DbTransfer(object):
         cli.close()
         return active_time
 
-    @staticmethod
-    def push_trafficlog_onlinelog():
+    def push_trafficlog_onlinelog(self):
         active_time = self.get_ports_active_time()
         keys = active_time.keys()
         now = int(time.time())
@@ -142,7 +141,7 @@ class DbTransfer(object):
         conn.close()
 
                 
-    # why this function is not static
+    # why this function is not static. Maybe self is argument
     def push_db_all_user(self):
         dt_transfer = self.get_servers_transfer()
         query_head = 'UPDATE user'
@@ -222,7 +221,7 @@ class DbTransfer(object):
             try:
                 DbTransfer.get_instance().push_db_all_user()
                 rows = DbTransfer.get_instance().pull_db_all_user()
-                DbTransfer.push_trafficlog_onlinelog()
+                DbTransfer.get_instance().push_trafficlog_onlinelog()
                 DbTransfer.del_server_out_of_bound_safe(rows)
             except Exception as e:
                 import traceback
