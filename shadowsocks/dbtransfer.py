@@ -8,7 +8,7 @@ import sys
 import socket
 import config
 import json
-
+import collections
 
 class DbTransfer(object):
 
@@ -112,10 +112,12 @@ class DbTransfer(object):
     @staticmethod
     def push_trafficlog_onlinelog():
         active_time = self.get_ports_active_time()
+        keys = active_time.keys()
         now = int(time.time())
         online_user = 0
-        for k, v in active_time:
-            if now - v > 1800:
+        # I am sure that active_time and statics are written at the same time always
+        for k in keys:
+            if now - active_time[k] > 1800:
                 user_id = self.port2userid[k]
                 # u and d is equal; what the fuck traffic is?
                 sql = 'INSERT INTO user_traffic_log (user_id,u,d,node_id,rate,traffic,log_time) VALUES(%d,%d,%d,%f,%s,%d)' % (user_id,self.traffic_logs[k],self.traffic_logs[k],self.node_id,1.0,'',now)
@@ -126,6 +128,7 @@ class DbTransfer(object):
                 conn.commit()
                 conn.close()
                 self.traffic_logs[k] = 0
+                del active_time[k]
             else:
                 online_user += 1
 
