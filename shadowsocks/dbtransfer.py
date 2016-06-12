@@ -132,7 +132,7 @@ class DbTransfer(object):
                 online_user += 1
 
         # push to onlinelog
-        query_sql = 'INSERT INTO ss_node_online_log (node_id, online_user,log_time) VALUES(%d,%d,%d) ON DUPLICATE KEY UPDATE online_user=%d' % (self.node_id, online_user,now,online_user)
+        query_sql = 'INSERT INTO ss_node_online_log_noid (node_id, online_user,log_time) VALUES(%d,%d,%d) ON DUPLICATE KEY UPDATE online_user=%d,log_time=%d' % (self.node_id, online_user,now,online_user,now)
         conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
         cur = conn.cursor()
         cur.execute(query_sql)
