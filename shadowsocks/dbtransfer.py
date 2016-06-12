@@ -18,6 +18,7 @@ class DbTransfer(object):
     def __init__(self):
         self.last_get_transfer = {}
         self.traffic_logs = collections.defaultdict(long)
+        self.active_time = {}
         #if there was many user, this dic is too large in memeory
         self.port2userid = {}
         # pull port2userid from db, and take it to memeory
@@ -94,8 +95,7 @@ class DbTransfer(object):
         return dt_transfer
 
     @staticmethod
-    def get_ports_active_time():
-        active_time = {}
+    def update_ports_active_time():
         cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         cli.settimeout(2)
         cli.sendto('latest: {}', ('%s' % (config.MANAGE_BIND_IP), config.MANAGE_PORT))
@@ -106,19 +106,18 @@ class DbTransfer(object):
                 break
             data = json.loads(data)
             print data
-            active_time.update(data)
+            self.active_time.update(data)
         cli.close()
-        return active_time
 
     def push_trafficlog_onlinelog(self):
-        active_time = self.get_ports_active_time()
-        keys = active_time.keys()
+        self.update_ports_active_time()
+        keys = self.active_time.keys()
         now = int(time.time())
         online_user = 0
         online_user_set = set();
         # I am sure that active_time and statics are written at the same time always
         for k in keys:
-            if now - active_time[k] > 30:
+            if now - self.active_time[k] > 30:
                 # a user has only one port. 
                 user_id = self.port2userid[k]
                 # u and d is equal; what the fuck traffic is?
@@ -130,7 +129,7 @@ class DbTransfer(object):
                 conn.commit()
                 conn.close()
                 self.traffic_logs[k] = 0
-                del active_time[k]
+                del self.active_time[k]
             else:
                 online_user += 1
                 online_user_set.add(k)
