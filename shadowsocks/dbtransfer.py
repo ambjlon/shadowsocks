@@ -95,7 +95,7 @@ class DbTransfer(object):
         return dt_transfer
 
     @staticmethod
-    def update_ports_active_time():
+    def update_ports_active_time(self):
         cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         cli.settimeout(2)
         cli.sendto('latest: {}', ('%s' % (config.MANAGE_BIND_IP), config.MANAGE_PORT))
