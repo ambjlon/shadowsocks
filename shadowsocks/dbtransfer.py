@@ -17,7 +17,7 @@ class DbTransfer(object):
 
     def __init__(self):
         self.last_get_transfer = {}
-        self.traffic_logs = collections.defaultdict(int)
+        self.traffic_logs = collections.defaultdict(long)
         #if there was many user, this dic is too large in memeory
         self.port2userid = {}
         # pull port2userid from db, and take it to memeory
@@ -31,7 +31,7 @@ class DbTransfer(object):
         cur.close()
         conn.close()
         for row in rows:
-            self.port2userid[row[1]] = row[0]
+            self.port2userid[unicode(row[1])] = row[0]
         # get local ip
         localhost = socket.getfqdn(socket.gethostname())
         self.ip = socket.gethostbyname(localhost)
