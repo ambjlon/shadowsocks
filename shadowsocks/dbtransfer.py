@@ -19,7 +19,7 @@ class DbTransfer(object):
         self.last_get_transfer = {}
         self.traffic_logs = collections.defaultdict(int)
         #if there was many user, this dic is too large in memeory
-        self.port2userid = collections.defaultdict(int)
+        self.port2userid = {}
         # pull port2userid from db, and take it to memeory
         conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER,
                                passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
