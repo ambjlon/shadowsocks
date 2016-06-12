@@ -192,6 +192,7 @@ class Manager(object):
             i = 0
         # e reprsent 'end' @chenjianglong
         self._send_control_data('e')
+        # 客户端每次询问以后就会清空_statistics. 下次询问返回的结果是本子询问和下次询问之间的数据流量. @chenjianglong
         self._statistics.clear()
 
     # send ports' latest_active_time
@@ -218,7 +219,8 @@ class Manager(object):
             send_data(r)
             r.clear()
             i = 0
-        self._send_control_data('e')    
+        self._send_control_data('e')
+        self._latest_active_time.clear()
 
     def _send_control_data(self, data):
         if self._control_client_addr:
