@@ -9,6 +9,7 @@ import socket
 import config
 import json
 import collections
+import sets
 
 class DbTransfer(object):
 
@@ -114,9 +115,11 @@ class DbTransfer(object):
         keys = active_time.keys()
         now = int(time.time())
         online_user = 0
+        online_user_set = set();
         # I am sure that active_time and statics are written at the same time always
         for k in keys:
-            if now - active_time[k] > 1800:
+            if now - active_time[k] > 30:
+                # a user has only one port. 
                 user_id = self.port2userid[k]
                 # u and d is equal; what the fuck traffic is?
                 query_sql = 'INSERT INTO user_traffic_log (user_id,u,d,node_id,rate,traffic,log_time) VALUES(%d,%d,%d,%f,%s,%d)' % (user_id,self.traffic_logs[k],self.traffic_logs[k],self.node_id,1.0,'',now)
@@ -130,17 +133,34 @@ class DbTransfer(object):
                 del active_time[k]
             else:
                 online_user += 1
+                online_user_set.add(k)
 
-        # push to onlinelog
-        query_sql = 'INSERT INTO ss_node_online_log_noid (node_id, online_user,log_time) VALUES(%d,%d,%d) ON DUPLICATE KEY UPDATE online_user=%d,log_time=%d' % (self.node_id, online_user,now,online_user,now)
+        # push to ss_node_online_log_noid
+        query_sql = 'INSERT INTO ss_node_online_log_noid (node_id,server,online_user,log_time) VALUES(%d,%s,%d,now()) ON DUPLICATE KEY UPDATE online_user=%d,log_time=now()' % (self.node_id,self.ip,online_user,online_user)
         conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
         cur = conn.cursor()
         cur.execute(query_sql)
         cur.close()
         conn.commit()
         conn.close()
-
-                
+        # push to ss_user_node_online_log_noid
+        query_sql = 'INSERT INTO ss_user_node_online_log_noid (port,node_id,server,online_status,log_time) VALUES '
+        keys = self.port2userid.keys()
+        for key in keys:
+            if key not in online_user_set:
+                query_sql += '(%d,%d,%s,%d,now()),' % (key,self.node_id,self.ip,0)
+            else:
+                query_sql += '(%d,%d,%s,%d,now()),' % (key,self.node_id,self.ip,1)
+        query_sql = query_sql[:-1]
+        query_sql += ' ON DUPLICATE KEY UPDATE online_status=values(online_status),log_time=now()'
+        online_user_set.clear()
+        conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+        cur = conn.cursor()
+        cur.execute(query_sql)
+        cur.close()
+        conn.commit()
+        conn.close()
+        
     # why this function is not static. Maybe self is argument
     def push_db_all_user(self):
         dt_transfer = self.get_servers_transfer()
