@@ -95,7 +95,8 @@ class DbTransfer(object):
         return dt_transfer
 
     @staticmethod
-    def update_ports_active_time(self):
+    def update_ports_active_time():
+        active_time = {}
         cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         cli.settimeout(2)
         cli.sendto('latest: {}', ('%s' % (config.MANAGE_BIND_IP), config.MANAGE_PORT))
@@ -106,11 +107,12 @@ class DbTransfer(object):
                 break
             data = json.loads(data)
             print data
-            self.active_time.update(data)
+            active_time.update(data)
         cli.close()
-
+        return active_time
+        
     def push_trafficlog_onlinelog(self):
-        self.update_ports_active_time()
+        self.active_time.update(self.update_ports_active_time())
         keys = self.active_time.keys()
         now = int(time.time())
         online_user = 0
