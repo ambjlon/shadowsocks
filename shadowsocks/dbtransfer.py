@@ -119,7 +119,7 @@ class DbTransfer(object):
         online_user_set = set();
         # I am sure that active_time and statics are written at the same time always
         for k in keys:
-            if now - self.active_time[k] > 30:
+            if now - self.active_time[k] > 1800:
                 # a user has only one port. 
                 user_id = self.port2userid[k]
                 # u and d is equal; what the fuck traffic is?
