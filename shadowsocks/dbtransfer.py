@@ -122,7 +122,7 @@ class DbTransfer(object):
                 # a user has only one port. 
                 user_id = self.port2userid[k]
                 # u and d is equal; what the fuck traffic is?
-                query_sql = 'INSERT INTO user_traffic_log (user_id,u,d,node_id,rate,traffic,log_time) VALUES(%d,%d,%d,%f,%s,%d)' % (user_id,self.traffic_logs[k],self.traffic_logs[k],self.node_id,1.0,'',now)
+                query_sql = "INSERT INTO user_traffic_log (user_id,u,d,node_id,rate,traffic,log_time) VALUES(%d,%d,%d,%f,'%s',%d)" % (user_id,self.traffic_logs[k],self.traffic_logs[k],self.node_id,1.0,'',now)
                 conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
                 cur = conn.cursor()
                 cur.execute(query_sql)
@@ -136,8 +136,8 @@ class DbTransfer(object):
                 online_user_set.add(k)
 
         # push to ss_node_online_log_noid
-        query_sql = 'INSERT INTO ss_node_online_log_noid (node_id,server,online_user,log_time) VALUES(%d,%s,%d,now()) ON DUPLICATE KEY UPDATE online_user=%d,log_time=now()' % (self.node_id,self.ip,online_user,online_user)
-        conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+        query_sql = "INSERT INTO ss_node_online_log_noid (node_id,server,online_user,log_time) VALUES(%d,'%s',%d,now()) ON DUPLICATE KEY UPDATE online_user=%d,log_time=now()" % (self.node_id,self.ip,online_user,online_user)
+	conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
         cur = conn.cursor()
         cur.execute(query_sql)
         cur.close()
@@ -148,9 +148,9 @@ class DbTransfer(object):
         keys = self.port2userid.keys()
         for key in keys:
             if key not in online_user_set:
-                query_sql += '(%d,%d,%s,%d,now()),' % (key,self.node_id,self.ip,0)
+                query_sql += "(%d,%d,'%s',%d,now())," % (key,self.node_id,self.ip,0)
             else:
-                query_sql += '(%d,%d,%s,%d,now()),' % (key,self.node_id,self.ip,1)
+                query_sql += "(%d,%d,'%s',%d,now())," % (key,self.node_id,self.ip,1)
         query_sql = query_sql[:-1]
         query_sql += ' ON DUPLICATE KEY UPDATE online_status=values(online_status),log_time=now()'
         online_user_set.clear()
