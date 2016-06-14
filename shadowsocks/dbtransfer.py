@@ -116,7 +116,7 @@ class DbTransfer(object):
         now = int(time.time())
         for k in keys:
             #if a user port was not used in 45 mins then this port's traffic is loged. log with traffic<60 is ignored.
-            if now - self.active_time[k] > 2700 and self.traffic_logs[k] > 60:
+            if now - self.active_time[k] > 2700 and self.traffic_logs[k] > 256:
                 # a user has only one port. 
                 user_id = self.port2userid[k]
                 # u and d is equal; what the fuck traffic is?
@@ -247,8 +247,20 @@ class DbTransfer(object):
         conn.commit()
         conn.close()
         # update traffic_logs @chenjianlong
+        total_transfer = 0
         for k, v in dt_transfer.items():
-            self.traffic_logs[k] += v            
+            self.traffic_logs[k] += v
+            total_transfer += v
+
+        query_sql = 'INSERT INTO node_load (node_id,server,load,log_time) VALUES (%s,%s,%s,now()) ON DUPLICATE KEY UPDATE load=%s,log_time=now()' % (self.node_id, self.ip, total_transfer, load+total_transfer)
+        conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER,
+                               passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+        cur = conn.cursor()
+        cur.execute(query_sql)
+        cur.close()
+        conn.commit()
+        conn.close()
+        
 
     @staticmethod
     def pull_db_all_user():
