@@ -110,7 +110,62 @@ class DbTransfer(object):
             active_time.update(data)
         cli.close()
         return active_time
+    def push_user_trafficlog(self):
+        self.active_time.update(self.update_ports_active_time())
+        keys = self.active_time.keys()
+        now = int(time.time())
+        for k in keys:
+            #if a user port was not used in 45 mins then this port's traffic is loged. log with traffic<60 is ignored.
+            if now - self.active_time[k] > 2700 and self.traffic_logs[k] > 60:
+                # a user has only one port. 
+                user_id = self.port2userid[k]
+                # u and d is equal; what the fuck traffic is?
+                query_sql = "INSERT INTO user_traffic_log (user_id,u,d,node_id,rate,traffic,log_time) VALUES(%s,%s,%s,%s,%s,'%s',now())" % (user_id,self.traffic_logs[k],self.traffic_logs[k],self.node_id,1.0,'')
+                conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+                cur = conn.cursor()
+                cur.execute(query_sql)
+                cur.close()
+                conn.commit()
+                conn.close()
+                self.traffic_logs[k] = 0
+                del self.active_time[k]
+
+    def push_user_onlinelog(self):
+        keys = self.active_time.keys()
+        now = int(time.time())
+        online_user = 0
+        online_user_set = set();
+        for k in keys:
+            if now - self.active_time[k] < 20:
+                online_user += 1
+                online_user_set.add(k)
+                
+        query_sql = "INSERT INTO ss_node_online_log_noid (node_id,server,online_user,log_time) VALUES(%s,'%s',%s,now()) ON DUPLICATE KEY UPDATE online_user=%s,log_time=now()" % (self.node_id,self.ip,online_user,online_user)
+	conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+        cur = conn.cursor()
+        cur.execute(query_sql)
+        cur.close()
+        conn.commit()
+        conn.close()
+        # push to ss_user_node_online_log_noid
+        query_sql = 'INSERT INTO ss_user_node_online_log_noid (port,node_id,server,online_status,log_time) VALUES '
+        keys = self.port2userid.keys()
+        for key in keys:
+            if key not in online_user_set:
+                query_sql += "(%s,%s,'%s',%s,now())," % (key,self.node_id,self.ip,0)
+            else:
+                query_sql += "(%s,%s,'%s',%s,now())," % (key,self.node_id,self.ip,1)
+        query_sql = query_sql[:-1]
+        query_sql += ' ON DUPLICATE KEY UPDATE online_status=values(online_status),log_time=now()'
+        online_user_set.clear()
+        conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER, passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
+        cur = conn.cursor()
+        cur.execute(query_sql)
+        cur.close()
+        conn.commit()
+        conn.close()
         
+    # this function is dropped.
     def push_trafficlog_onlinelog(self):
         self.active_time.update(self.update_ports_active_time())
         keys = self.active_time.keys()
@@ -242,7 +297,8 @@ class DbTransfer(object):
             try:
                 DbTransfer.get_instance().push_db_all_user()
                 rows = DbTransfer.get_instance().pull_db_all_user()
-                DbTransfer.get_instance().push_trafficlog_onlinelog()
+                DbTransfer.get_instance().push_user_trafficlog()
+                DbTransfer.get_instance().push_user_onlinelog()
                 DbTransfer.del_server_out_of_bound_safe(rows)
             except Exception as e:
                 import traceback
