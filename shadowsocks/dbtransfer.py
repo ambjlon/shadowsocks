@@ -252,7 +252,7 @@ class DbTransfer(object):
             self.traffic_logs[k] += v
             total_transfer += v
 
-        query_sql = 'INSERT INTO node_load (node_id,server,load,log_time) VALUES (%s,%s,%s,now()) ON DUPLICATE KEY UPDATE load=load+%s,log_time=now()' % (self.node_id, self.ip, total_transfer, total_transfer)
+        query_sql = "INSERT INTO node_load (node_id,server,load,log_time) VALUES (%s,'%s',%s,now()) ON DUPLICATE KEY UPDATE load=load+%s,log_time=now()" % (self.node_id, self.ip, total_transfer, total_transfer)
         conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER,
                                passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
         cur = conn.cursor()
