@@ -116,7 +116,8 @@ class DbTransfer(object):
         now = int(time.time())
         for k in keys:
             #if a user port was not used in 45 mins then this port's traffic is loged. log with traffic<60 is ignored.
-            if now - self.active_time[k] > 2700 and self.traffic_logs[k] > 256:
+            if now - self.active_time[k] > 2700:
+                # and self.traffic_logs[k] > 256: using iptables in 45.78.57.84 to forbidden port scanning is useful.  need to improve iptables usage. 
                 # a user has only one port. 
                 user_id = self.port2userid[k]
                 # u and d is equal; what the fuck traffic is?
