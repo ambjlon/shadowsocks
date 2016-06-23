@@ -276,8 +276,8 @@ class DbTransfer(object):
         conn.close()
         return rows
 
-    @staticmethod
-    def del_server_out_of_bound_safe(rows):
+    #@staticmethod
+    def del_server_out_of_bound_safe(rows,self):
         for row in rows:
             server = json.loads(DbTransfer.get_instance().send_command('stat: {"server_port":%s}' % row[0]))
             if server['stat'] != 'ko':
@@ -313,7 +313,7 @@ class DbTransfer(object):
                 rows = DbTransfer.get_instance().pull_db_all_user()
                 DbTransfer.get_instance().push_user_trafficlog()
                 DbTransfer.get_instance().push_user_onlinelog()
-                DbTransfer.del_server_out_of_bound_safe(rows)
+                DbTransfer.get_instance().del_server_out_of_bound_safe(rows)
             except Exception as e:
                 import traceback
                 traceback.print_exc()
