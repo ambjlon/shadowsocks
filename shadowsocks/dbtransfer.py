@@ -285,19 +285,22 @@ class DbTransfer(object):
                     #stop disable or switch off user
                     logging.info('db stop server at port [%s] reason: disable' % (row[0]))
                     DbTransfer.send_command('remove: {"server_port":%s}' % row[0])
+                    del DbTransfer.get_instance().port2userid[unicode(row[0])]
                 elif row[1] + row[2] >= row[3]:
                     #stop out bandwidth user
                     logging.info('db stop server at port [%s] reason: out bandwidth' % (row[0]))
                     DbTransfer.send_command('remove: {"server_port":%s}' % row[0])
+                    del DbTransfer.get_instance().port2userid[unicode(row[0])]
                 if server['password'] != row[4]:
                     #password changed
                     logging.info('db stop server at port [%s] reason: password changed' % (row[0]))
                     DbTransfer.send_command('remove: {"server_port":%s}' % row[0])
+                    del DbTransfer.get_instance().port2userid[unicode(row[0])]
             else:
                 if row[5] == 1 and row[6] == 1 and row[1] + row[2] < row[3]:
                     logging.info('db start server at port [%s] pass [%s]' % (row[0], row[4]))
                     DbTransfer.send_command('add: {"server_port": %s, "password":"%s"}'% (row[0], row[4]))
-                    DbTransfer.get_instance().port2userid[row[0]] = row[7]
+                    DbTransfer.get_instance().port2userid[unicode(row[0])] = row[7]
                     print('add: {"server_port": %s, "password":"%s"}'% (row[0], row[4]))
 
     @staticmethod
