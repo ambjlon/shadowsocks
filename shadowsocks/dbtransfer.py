@@ -268,7 +268,7 @@ class DbTransfer(object):
         conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER,
                                passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
         cur = conn.cursor()
-        cur.execute("SELECT port, u, d, transfer_enable, passwd, switch, enable FROM user")
+        cur.execute("SELECT port, u, d, transfer_enable, passwd,id, switch, enable FROM user")
         rows = []
         for r in cur.fetchall():
             rows.append(list(r))
@@ -297,6 +297,7 @@ class DbTransfer(object):
                 if row[5] == 1 and row[6] == 1 and row[1] + row[2] < row[3]:
                     logging.info('db start server at port [%s] pass [%s]' % (row[0], row[4]))
                     DbTransfer.send_command('add: {"server_port": %s, "password":"%s"}'% (row[0], row[4]))
+                    self.port2userid[row[0]] = row[5]
                     print('add: {"server_port": %s, "password":"%s"}'% (row[0], row[4]))
 
     @staticmethod
