@@ -2,9 +2,9 @@ import logging
 
 #Config
 MYSQL_HOST = '45.78.57.84'
-MYSQL_PORT = 3306
+MYSQL_PORT = 56199
 MYSQL_USER = 'ss'
-MYSQL_PASS = 'ss'
+MYSQL_PASS = 'lBe%tNKf'
 MYSQL_DB = 'shadowsocks'
 
 MANAGE_PASS = 'passwd'
