@@ -21,6 +21,6 @@ SS_METHOD = 'rc4-md5'
 
 #LOG CONFIG
 LOG_ENABLE = True
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.WARNING
 LOG_FILE = '/home/ss/shadowsocks.log'
 
