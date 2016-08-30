@@ -34,9 +34,11 @@ class DbTransfer(object):
         for row in rows:
             self.port2userid[unicode(row[1])] = row[0]
         # get local ip
-        localhost = socket.getfqdn(socket.gethostname())
-        self.ip = socket.gethostbyname(localhost)
-        # ip2nodeid
+        #localhost = socket.getfqdn(socket.gethostname())
+        #self.ip = socket.gethostbyname(localhost)
+        #some machine, we have to specify selfip .
+	self.ip = '*.*.*.*'
+	# ip2nodeid
         self.ip2nodeid = collections.defaultdict(int)
         #pull nodeid2ip from db, and take it to memeory
         conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER,
