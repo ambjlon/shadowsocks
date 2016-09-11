@@ -300,13 +300,13 @@ class DbTransfer(object):
                     logging.info('db stop server at port [%s] reason: password changed' % (row[0]))
                     DbTransfer.send_command('remove: {"server_port":%s}' % row[0])
                     #del DbTransfer.get_instance().port2userid[unicode(row[0])]
-                if row[7] not in service4:
+                if row[8] not in service4:
                     #password changed
                     logging.info('db stop server at port [%s] reason: pay_status changed' % (row[0]))
                     DbTransfer.send_command('remove: {"server_port":%s}' % row[0])
                     #del DbTransfer.get_instance().port2userid[unicode(row[0])]
             else:
-                if row[5] == 1 and row[6] == 1 and row[1] + row[2] < row[3] and row[7] in service4:
+                if row[5] == 1 and row[6] == 1 and row[1] + row[2] < row[3] and row[8] in service4:
                     logging.info('db start server at port [%s] pass [%s]' % (row[0], row[4]))
                     DbTransfer.send_command('add: {"server_port": %s, "password":"%s"}'% (row[0], row[4]))
                     DbTransfer.get_instance().port2userid[unicode(row[0])] = row[7]
