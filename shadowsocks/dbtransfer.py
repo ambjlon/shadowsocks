@@ -299,7 +299,7 @@ class DbTransfer(object):
                     logging.info('db stop server at port [%s] reason: password changed' % (row[0]))
                     DbTransfer.send_command('remove: {"server_port":%s}' % row[0])
                     #del DbTransfer.get_instance().port2userid[unicode(row[0])]
-                if row[7] not it self.service4:
+                if row[7] not in self.service4:
                     #password changed
                     logging.info('db stop server at port [%s] reason: pay_status changed' % (row[0]))
                     DbTransfer.send_command('remove: {"server_port":%s}' % row[0])
