@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import logging
 
 #Config
@@ -24,3 +27,7 @@ LOG_ENABLE = True
 LOG_LEVEL = logging.WARNING
 LOG_FILE = '/home/ss/shadowsocks.log'
 
+#本机ip
+HOST_IP = ''
+#表示为哪些用户提供服务 e.g. '0:2'
+PAY_STATUS = '0:2'

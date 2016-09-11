@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 
 import logging
 import cymysql
@@ -16,6 +16,7 @@ class DbTransfer(object):
     instance = None
 
     def __init__(self):
+        self.service4 = config.PAY_STATUS.split(':')
         self.last_get_transfer = {}
         self.traffic_logs = collections.defaultdict(long)
         self.active_time = {}
@@ -37,7 +38,7 @@ class DbTransfer(object):
         #localhost = socket.getfqdn(socket.gethostname())
         #self.ip = socket.gethostbyname(localhost)
         #some machine, we have to specify selfip .
-	self.ip = '*.*.*.*'
+	self.ip = config.HOST_IP
 	# ip2nodeid
         self.ip2nodeid = collections.defaultdict(int)
         #pull nodeid2ip from db, and take it to memeory
@@ -270,7 +271,7 @@ class DbTransfer(object):
         conn = cymysql.connect(host=config.MYSQL_HOST, port=config.MYSQL_PORT, user=config.MYSQL_USER,
                                passwd=config.MYSQL_PASS, db=config.MYSQL_DB, charset='utf8')
         cur = conn.cursor()
-        cur.execute("SELECT port, u, d, transfer_enable, passwd, switch, enable, id FROM user")
+        cur.execute("SELECT port, u, d, transfer_enable, passwd, switch, enable, id, pay_status FROM user")
         rows = []
         for r in cur.fetchall():
             rows.append(list(r))
@@ -298,8 +299,13 @@ class DbTransfer(object):
                     logging.info('db stop server at port [%s] reason: password changed' % (row[0]))
                     DbTransfer.send_command('remove: {"server_port":%s}' % row[0])
                     #del DbTransfer.get_instance().port2userid[unicode(row[0])]
+                if row[7] not it self.service4:
+                    #password changed
+                    logging.info('db stop server at port [%s] reason: pay_status changed' % (row[0]))
+                    DbTransfer.send_command('remove: {"server_port":%s}' % row[0])
+                    #del DbTransfer.get_instance().port2userid[unicode(row[0])]
             else:
-                if row[5] == 1 and row[6] == 1 and row[1] + row[2] < row[3]:
+                if row[5] == 1 and row[6] == 1 and row[1] + row[2] < row[3] and row[7] in self.service4:
                     logging.info('db start server at port [%s] pass [%s]' % (row[0], row[4]))
                     DbTransfer.send_command('add: {"server_port": %s, "password":"%s"}'% (row[0], row[4]))
                     DbTransfer.get_instance().port2userid[unicode(row[0])] = row[7]
